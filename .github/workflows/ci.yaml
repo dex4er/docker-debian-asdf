@@ -40,4 +40,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache: true
           cache-repository: dex4er/cache
-          kaniko-args: --single-snapshot --skip-unused-stages --snapshotMode=redo --use-new-run
+          kaniko-args: |
+            --single-snapshot
+            --skip-unused-stages
+            --snapshotMode=redo
+            --use-new-run
