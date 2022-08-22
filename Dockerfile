@@ -13,4 +13,6 @@ RUN printf '\nsource /root/.asdf/asdf.sh\n' >> /root/.bashrc
 
 RUN find /var/cache/apt /var/lib/apt/lists /var/log -type f -delete
 
+ENV BASH_ENV=/root/.asdf/asdf.sh
+
 RUN asdf info
