@@ -38,8 +38,6 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache: true
-          cache-repository: dex4er/cache
           kaniko-args: |
             --single-snapshot
             --skip-unused-stages
