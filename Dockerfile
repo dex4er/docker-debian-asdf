@@ -15,4 +15,4 @@ RUN find /var/cache/apt /var/lib/apt/lists /var/log -type f -delete
 
 ENV BASH_ENV=/root/.asdf/asdf.sh
 
-RUN asdf info
+RUN bash -c 'asdf info'
