@@ -67,30 +67,30 @@ jobs:
         run: docker load -i /tmp/kaniko-action-*/image.tar
 
       - name: Test built image
-        run: docker run --rm -t ${{ env.IMAGE_REPO }}:edge bash -c "asdf version"
+        run: docker run --rm -t ${IMAGE_REPO}:edge bash -c "asdf version"
 
-      - name: Prepare new tag
+      - name: Prepare new release tag
         id: image
-        run: echo IMAGE_TAG=${{ env.DEBIAN_TAG }}-asdf-${{ env.ASDF_RELEASE }} | tee -a $GITHUB_ENV
+        run: echo IMAGE_TAG=${DEBIAN_TAG}-asdf-${ASDF_RELEASE#v} | tee -a $GITHUB_ENV
 
       - name: Retag to release
         if: github.event_name != 'pull_request'
-        run: docker tag ${{ env.IMAGE_REPO }}:edge ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG }}
+        run: docker tag ${IMAGE_REPO}:edge ${IMAGE_REPO}:${IMAGE_TAG}
 
       - name: Push the release
         if: github.event_name != 'pull_request'
-        run: docker push ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG }}
+        run: docker push ${IMAGE_REPO}:${IMAGE_TAG}
 
       - name: Retag to latest
         if: github.event_name != 'pull_request'
-        run: docker tag ${{ env.IMAGE_REPO }}:edge ${{ env.IMAGE_REPO }}:latest
+        run: docker tag ${IMAGE_REPO}:edge ${IMAGE_REPO}:latest
 
       - name: Push the latest
         if: github.event_name != 'pull_request'
-        run: docker push ${{ env.IMAGE_REPO }}:latest
+        run: docker push ${IMAGE_REPO}:latest
 
       - name: Create new git tag
         if: github.event_name != 'pull_request'
         run: |
-          git tag -f ${{ env.IMAGE_TAG }}
-          git push -f origin ${{ env.IMAGE_TAG }}
+          git tag -f ${IMAGE_TAG}
+          git push -f origin ${IMAGE_TAG}
