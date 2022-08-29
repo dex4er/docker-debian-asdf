@@ -1,4 +1,4 @@
-## $ docker build --tag debian-asdf:bullseye --squash .
+## $ docker build --tag dex4er/debian-asdf --squash .
 
 ARG ASDF_RELEASE=v0.10.2
 ARG DEBIAN_TAG=bullseye
