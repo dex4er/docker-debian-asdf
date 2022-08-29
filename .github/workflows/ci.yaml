@@ -22,6 +22,7 @@ jobs:
           images: |
             dex4er/debian-asdf
           tags: |
+            type=edge
             type=ref,event=branch
             type=ref,event=pr
             type=raw,value=latest,enable={{is_default_branch}}
