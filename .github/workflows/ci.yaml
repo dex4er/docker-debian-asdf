@@ -24,10 +24,10 @@ jobs:
 
       - name: Check latest asdf release
         id: asdf
-        uses: rez0n/actions-github-release@main
+        uses: pozetroninc/github-action-get-latest-release@master
         with:
           repository: asdf-vm/asdf
-          type: stable
+          excludes: prerelease, draft
 
       - name: Docker meta
         id: meta
