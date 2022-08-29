@@ -21,12 +21,12 @@ jobs:
       - name: Check latest Debian image
         id: debian
         run: |
-          echo ::set-output name=tag::$(docker run --rm gcr.io/go-containerregistry/crane ls debian | grep -P '^bullseye-[0-9]+$' | sort -r | head -n1)
+          echo DEBIAN_TAG=$(docker run --rm gcr.io/go-containerregistry/crane ls debian | grep -P '^bullseye-[0-9]+$' | sort -r | head -n1) | tee -a $GITHUB_ENV
 
       - name: Check latest asdf release
         id: asdf
         run: |
-          echo ::set-output name=release::$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases | grep -oE 'tag_name": ".{1,15}",' | sed 's/tag_name\": \"v//;s/\",//' | grep -vE '^(0\.[12]\.|0\.3\.0$)' | sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' | LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}' | tail -n1)
+          echo ASDF_RELEASE=v$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases | grep -oE 'tag_name": ".{1,15}",' | sed 's/tag_name\": \"v//;s/\",//' | grep -vE '^(0\.[12]\.|0\.3\.0$)' | sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' | LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}' | tail -n1) | tee -a $GITHUB_ENV
 
       - name: Docker meta
         id: meta
@@ -54,8 +54,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            ASDF_RELEASE=v${{ steps.asdf.output.release }}
-            DEBIAN_TAG=${{ steps.debian.outputs.tag }}
+            ASDF_RELEASE=${{ env.ASDF_RELEASE }}
+            DEBIAN_TAG=${{ env.DEBIAN_TAG }}
           kaniko-args: |
             --tarPath=/kaniko/action/output/image.tar
             --single-snapshot
@@ -71,15 +71,15 @@ jobs:
 
       - name: Prepare new tag
         id: image
-        run: echo ::set-output name=tag::${{ steps.debian.output.tag }}-asdf-${{ steps.asdf.output.release }}
+        run: echo IMAGE_TAG=${{ env.DEBIAN_TAG }}-asdf-${{ env.ASDF_RELEASE }} | tee -a $GITHUB_ENV
 
       - name: Retag to release
         if: github.event_name != 'pull_request'
-        run: docker tag ${{ env.IMAGE_REPO }}:edge ${{ env.IMAGE_REPO }}:${{ steps.image.output.tag }}
+        run: docker tag ${{ env.IMAGE_REPO }}:edge ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG }}
 
       - name: Push the release
         if: github.event_name != 'pull_request'
-        run: docker push ${{ env.IMAGE_REPO }}:${{ steps.image.output.tag }}
+        run: docker push ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG }}
 
       - name: Retag to latest
         if: github.event_name != 'pull_request'
@@ -92,5 +92,5 @@ jobs:
       - name: Create new git tag
         if: github.event_name != 'pull_request'
         run: |
-          git tag -f ${{ env.IMAGE_REPO }}:${{ steps.image.output.tag }}
-          git push -f origin ${{ steps.asdf.output.release }}-asdf-${{ steps.image.output.tag }}
+          git tag -f ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG }}
+          git push -f origin ${{ env.IMAGE_TAG }}
