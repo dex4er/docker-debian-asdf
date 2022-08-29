@@ -67,7 +67,7 @@ jobs:
         run: docker load -i /tmp/kaniko-action-*/image.tar
 
       - name: Test built image
-        run: docker run --rm -t ${IMAGE_REPO}:edge bash -c "asdf version"
+        run: docker run --rm -t ${IMAGE_REPO}:edge bash -c "asdf version" | grep $ASDF_RELEASE
 
       - name: Prepare new release tag
         id: image
