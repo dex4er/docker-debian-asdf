@@ -23,9 +23,9 @@ jobs:
             dex4er/debian-asdf
           tags: |
             type=edge
+            type=sha
             type=ref,event=branch
             type=ref,event=pr
-            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Login to DockerHub
         if: github.event_name != 'pull_request'
