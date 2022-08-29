@@ -47,5 +47,8 @@ jobs:
             --snapshotMode=redo
             --use-new-run
 
-      - run: docker load -i /tmp/kaniko-action-*/image.tar
-      - run: docker run --rm -t dex4er/debian-asdf bash -c "asdf version"
+      - name: Reuse built image
+        run: docker load -i /tmp/kaniko-action-*/image.tar
+
+      - name: Test built image
+        run: docker run --rm -t dex4er/debian-asdf bash -c "asdf version"
