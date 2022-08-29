@@ -51,4 +51,4 @@ jobs:
         run: docker load -i /tmp/kaniko-action-*/image.tar
 
       - name: Test built image
-        run: docker run --rm -t dex4er/debian-asdf bash -c "asdf version"
+        run: docker run --rm -t dex4er/debian-asdf:edge bash -c "asdf version"
