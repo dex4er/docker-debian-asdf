@@ -40,11 +40,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           kaniko-args: |
-            --tarPath=image.tar
+            --tarPath=/kaniko/action/output/image.tar
             --single-snapshot
             --skip-unused-stages
             --snapshotMode=redo
             --use-new-run
 
-      - run: docker load -i image.tar
+      - run: docker load -i /tmp/kaniko-action-*/image.tar
       - run: docker run --rm -t dex4er/debian-asdf bash -c "asdf version"
