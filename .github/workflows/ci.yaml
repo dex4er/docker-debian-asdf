@@ -20,14 +20,13 @@ jobs:
 
       - name: Check latest Debian image
         id: debian
-        run: echo ::set-output name=tag::$(docker run --rm gcr.io/go-containerregistry/crane ls debian | grep -P '^bullseye-[0-9]+$' | sort -r | head -n1)
+        run: |
+          echo ::set-output name=tag::$(docker run --rm gcr.io/go-containerregistry/crane ls debian | grep -P '^bullseye-[0-9]+$' | sort -r | head -n1)
 
       - name: Check latest asdf release
         id: asdf
-        uses: pozetroninc/github-action-get-latest-release@v0.6.0
-        with:
-          repository: asdf-vm/asdf
-          excludes: prerelease, draft
+        run: |
+          echo ::set-output name=release::$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases | grep -oE 'tag_name": ".{1,15}",' | sed 's/tag_name\": \"v//;s/\",//' | grep -vE '^(0\.[12]\.|0\.3\.0$)' | sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' | LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}' | tail -n1)
 
       - name: Docker meta
         id: meta
@@ -55,7 +54,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            ASDF_RELEASE=${{ steps.asdf.output.release }}
+            ASDF_RELEASE=v${{ steps.asdf.output.release }}
             DEBIAN_TAG=${{ steps.debian.outputs.tag }}
           kaniko-args: |
             --tarPath=/kaniko/action/output/image.tar
