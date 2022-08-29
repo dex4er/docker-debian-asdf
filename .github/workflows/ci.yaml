@@ -24,7 +24,7 @@ jobs:
 
       - name: Check latest asdf release
         id: asdf
-        uses: pozetroninc/github-action-get-latest-release@master
+        uses: pozetroninc/github-action-get-latest-release@v0.6.0
         with:
           repository: asdf-vm/asdf
           excludes: prerelease, draft
