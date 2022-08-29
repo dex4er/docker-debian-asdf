@@ -15,14 +15,14 @@ Container image with [asdf](https://asdf-vm.com/) installer.
 
 CLI:
 
-```sh
+```shell
 docker pull dex4er/debian-asdf
 docker run dex4er/debian-asdf bash -c "asdf plugin add nodejs && asdf install nodejs latest && asdf global nodejs latest && node -v"
 ```
 
 Dockerfile:
 
-```sh
+```Dockerfile
 FROM dex4er/debian-asdf:latest
 COPY .tool-versions /root/
 RUN bash -c 'cat .tool-versions | while read plugin version; do asdf plugin add $plugin; done'
