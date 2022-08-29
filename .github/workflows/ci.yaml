@@ -15,12 +15,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Prepare environment variables
+        run: cat .github/.env >> $GITHUB_ENV
+
+      - name: Check latest Debian image
+        id: debian
+        run: echo ::set-output name=tag::$(docker run --rm gcr.io/go-containerregistry/crane ls debian | grep -P '^bullseye-[0-9]+$' | sort -r | head -n1)
+
+      - name: Check latest asdf release
+        id: asdf
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          owner: asdf-vm
+          repo: asdf
+          excludes: rc
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
         with:
           images: |
-            dex4er/debian-asdf
+            ${{ env.IMAGE_REPO }}
           tags: |
             type=edge
             type=sha
@@ -40,6 +55,9 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            ASDF_RELEASE=${{ steps.asdf.output.release }}
+            DEBIAN_TAG=${{ steps.debian.outputs.tag }}
           kaniko-args: |
             --tarPath=/kaniko/action/output/image.tar
             --single-snapshot
@@ -51,4 +69,30 @@ jobs:
         run: docker load -i /tmp/kaniko-action-*/image.tar
 
       - name: Test built image
-        run: docker run --rm -t dex4er/debian-asdf:edge bash -c "asdf version"
+        run: docker run --rm -t ${{ env.IMAGE_REPO }}:edge bash -c "asdf version"
+
+      - name: Prepare new tag
+        id: image
+        run: echo ::set-output name=tag::${{ steps.debian.output.tag }}-asdf-${{ steps.asdf.output.release }}
+
+      - name: Retag to release
+        if: github.event_name != 'pull_request'
+        run: docker tag ${{ env.IMAGE_REPO }}:edge ${{ env.IMAGE_REPO }}:${{ steps.image.output.tag }}
+
+      - name: Push the release
+        if: github.event_name != 'pull_request'
+        run: docker push ${{ env.IMAGE_REPO }}:${{ steps.image.output.tag }}
+
+      - name: Retag to latest
+        if: github.event_name != 'pull_request'
+        run: docker tag ${{ env.IMAGE_REPO }}:edge ${{ env.IMAGE_REPO }}:latest
+
+      - name: Push the latest
+        if: github.event_name != 'pull_request'
+        run: docker push ${{ env.IMAGE_REPO }}:latest
+
+      - name: Create new git tag
+        if: github.event_name != 'pull_request'
+        run: |
+          git tag -f ${{ env.IMAGE_REPO }}:${{ steps.image.output.tag }}
+          git push -f origin ${{ steps.asdf.output.release }}-asdf-${{ steps.image.output.tag }}
