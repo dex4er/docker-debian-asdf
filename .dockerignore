@@ -1,4 +1,5 @@
 *~
+*.tar
 ?.*
 
 # not in .gitignore
