@@ -92,5 +92,5 @@ jobs:
       - name: Create new git tag
         if: github.event_name != 'pull_request'
         run: |
-          git tag -f ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG }}
+          git tag -f ${{ env.IMAGE_TAG }}
           git push -f origin ${{ env.IMAGE_TAG }}
