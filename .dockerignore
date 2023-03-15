@@ -2,6 +2,8 @@
 *.tar
 ?.*
 
+.vscode
+
 # not in .gitignore
 /.git*
 /.hadolint.yaml

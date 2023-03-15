@@ -1,15 +1,24 @@
-# docker-debian-asdf
+# debian-asdf
 
 [![GitHub](https://img.shields.io/github/v/tag/dex4er/docker-debian-asdf?label=GitHub)](https://github.com/dex4er/docker-debian-asdf)
 [![CI](https://github.com/dex4er/docker-debian-asdf/actions/workflows/ci.yaml/badge.svg)](https://github.com/dex4er/docker-debian-asdf/actions/workflows/ci.yaml)
-[![Lint](https://github.com/dex4er/docker-debian-asdf/actions/workflows/lint.yaml/badge.svg)](https://github.com/dex4er/docker-debian-asdf/actions/workflows/lint.yaml)
+[![Trunk Check](https://github.com/dex4er/docker-debian-asdf/actions/workflows/trunk.yaml/badge.svg)](https://github.com/dex4er/docker-debian-asdf/actions/workflows/trunk.yaml)
 [![Docker Image Version](https://img.shields.io/docker/v/dex4er/debian-asdf/latest?label=docker&logo=docker)](https://hub.docker.com/r/dex4er/debian-asdf)
 
-Container image with [asdf](https://asdf-vm.com/) installer.
+Container image with [asdf](https://asdf-vm.com/) installer based on Debian 11 "bullseye".
+
+Additional Debian packages:
+
+- [ca-certificates](https://packages.debian.org/bullseye/ca-certificates)
+- [curl](https://packages.debian.org/bullseye/curl)
+- [git](https://packages.debian.org/bullseye/git)
+- [procps](https://packages.debian.org/bullseye/procps)
+- [unzip](https://packages.debian.org/bullseye/unzip)
+- [xz-utils](https://packages.debian.org/bullseye/xz-utils)
 
 ## Tags
 
-- `bullseye-YYYYmmdd-asdf-X.Y.Z`, `latest`
+- `asdf-X.Y.Z-bullseye-YYYYmmdd`, `asdf-X.Y.Z`, `latest`
 
 ## Usage
 
@@ -25,9 +34,9 @@ Dockerfile:
 ```Dockerfile
 FROM dex4er/debian-asdf:latest
 COPY .tool-versions /root/
-RUN bash -c 'cat .tool-versions | while read plugin version; do asdf plugin add $plugin; done'
-RUN bash -c 'asdf install'
-RUN bash -c 'asdf list'
+RUN cat .tool-versions | while read plugin version; do asdf plugin add $plugin; done
+RUN asdf install
+RUN asdf list
 ```
 
 ## License
