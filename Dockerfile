@@ -1,4 +1,4 @@
-## $ docker build --tag dex4er/debian-asdf --squash .
+## $ docker buildx build --platform=linux/amd64 --tag dex4er/debian-asdf .
 
 ARG ASDF_RELEASE=v0.10.2
 ARG DEBIAN_TAG=bullseye
@@ -6,7 +6,7 @@ ARG VERSION=latest
 ARG REVISION
 ARG BUILDDATE
 
-FROM debian:${DEBIAN_TAG}
+FROM debian:${DEBIAN_TAG} as build
 
 ARG ASDF_RELEASE
 ARG BUILDDATE
@@ -24,10 +24,17 @@ RUN printf '\nsource /root/.asdf/asdf.sh\n' >> /root/.bashrc
 
 RUN find /var/cache/apt /var/lib/apt/lists /var/log -type f -delete
 
+
+FROM scratch
+
+COPY --from=build / /
+
 ENV ASDF_DIR=/root/.asdf
 ENV PATH=/root/.asdf/shims:/root/.asdf/bin:${PATH}
 
 RUN asdf info
+
+CMD [ "bash" ]
 
 LABEL \
   maintainer="Piotr Roszatycki <piotr.roszatycki@gmail.com>" \

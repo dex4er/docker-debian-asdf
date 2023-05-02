@@ -11,6 +11,7 @@ BUILDDATE ?= $(shell TZ=GMT date '+%Y-%m-%dT%R:%S.%03NZ')
 IMAGE_NAME ?= debian-asdf
 LOCAL_REPO ?= localhost:5000/$(IMAGE_NAME)
 DOCKER_REPO ?= localhost:5000/$(IMAGE_NAME)
+PLATFORM ?= linux/amd64
 
 .PHONY: help
 help:
@@ -30,8 +31,7 @@ all: ## Build and push.
 .PHONY: build
 build: ## Build a local image without publishing artifacts.
 	$(call print-target)
-	docker build \
-	--squash \
+	docker buildx build --platform=$(PLATFORM) \
 	--build-arg ASDF_RELEASE=$(ASDF_RELEASE) \
 	--build-arg DEBIAN_TAG=$(DEBIAN_TAG) \
 	--build-arg VERSION=$(VERSION) \
@@ -43,17 +43,17 @@ build: ## Build a local image without publishing artifacts.
 .PHONY: push
 push: ## Publish to container registry.
 	$(call print-target)
-	docker tag $(LOCAL_REPO) $(DOCKER_REPO):$(VERSION)
+	docker buildx imagetools create $(LOCAL_REPO) $(DOCKER_REPO):$(VERSION)
 	docker push $(DOCKER_REPO):$(VERSION)
-	docker tag $(LOCAL_REPO) $(DOCKER_REPO):asdf-$(ASDF_RELEASE:v%=%)
+	docker buildx imagetools create $(LOCAL_REPO) $(DOCKER_REPO):asdf-$(ASDF_RELEASE:v%=%)
 	docker push $(DOCKER_REPO):asdf-$(ASDF_RELEASE:v%=%)
-	docker tag $(LOCAL_REPO) $(DOCKER_REPO):latest
+	docker buildx imagetools create $(LOCAL_REPO) $(DOCKER_REPO):latest
 	docker push $(DOCKER_REPO):latest
 
 .PHONY: test
 test: ## Test local image
 	$(call print-target)
-	docker run --rm -t $(LOCAL_REPO) bash -c "asdf version" | $(GREP) ^v
+	docker run --platform=$(PLATFORM) --rm -t $(LOCAL_REPO) bash -c "asdf version" | $(GREP) ^v
 
 .PHONY: info
 info: ## Show information about version
