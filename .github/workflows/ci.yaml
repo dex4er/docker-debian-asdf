@@ -28,12 +28,25 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Prepare environment variables
         run: cat .github/.env >> $GITHUB_ENV
+
+      - name: Set up QEMU
+        if: matrix.platform == 'linux/arm64'
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
 
       - name: Login to DockerHub
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -46,18 +59,30 @@ jobs:
         run: echo VERSION=$(make info | awk '$1=="Version:"{print $2}') | tee -a $GITHUB_ENV
 
       - name: Build
-        run: make build VERSION="${VERSION}"
+        run: make build VERSION="${VERSION}" PLATFORM="${{ matrix.platform }}"
 
       - name: Inspect container image
         run: docker inspect "localhost:5000/$IMAGE_NAME" | jq -C .
 
       - name: Test built image
-        run: make test
+        run: make test PLATFORM="${{ matrix.platform }}"
 
       - name: Push to Docker
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: make push DOCKER_REPO="${DOCKER_REPO}"
 
+  tag:
+    name: Tag
+
+    needs: build
+
+    permissions:
+      id-token: write
+      contents: write
+
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Create new git tag
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |

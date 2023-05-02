@@ -43,11 +43,11 @@ build: ## Build a local image without publishing artifacts.
 .PHONY: push
 push: ## Publish to container registry.
 	$(call print-target)
-	docker buildx imagetools create $(LOCAL_REPO) $(DOCKER_REPO):$(VERSION)
+	docker tag $(LOCAL_REPO) $(DOCKER_REPO):$(VERSION)
 	docker push $(DOCKER_REPO):$(VERSION)
-	docker buildx imagetools create $(LOCAL_REPO) $(DOCKER_REPO):asdf-$(ASDF_RELEASE:v%=%)
+	docker tag $(LOCAL_REPO) $(DOCKER_REPO):asdf-$(ASDF_RELEASE:v%=%)
 	docker push $(DOCKER_REPO):asdf-$(ASDF_RELEASE:v%=%)
-	docker buildx imagetools create $(LOCAL_REPO) $(DOCKER_REPO):latest
+	docker tag $(LOCAL_REPO) $(DOCKER_REPO):latest
 	docker push $(DOCKER_REPO):latest
 
 .PHONY: test
