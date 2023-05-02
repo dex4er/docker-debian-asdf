@@ -56,7 +56,8 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Calculate new version number
-        run: echo VERSION=$(make info | awk '$1=="Version:"{print $2}') | tee -a $GITHUB_ENV
+        id: version
+        run: echo VERSION=$(make info | awk '$1=="Version:"{print $2}') | tee -a $GITHUB_ENV | tee -a $GITHUB_OUTPUT
 
       - name: Build
         run: make build VERSION="${VERSION}" PLATFORM="${{ matrix.platform }}"
@@ -71,6 +72,9 @@ jobs:
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: make push DOCKER_REPO="${DOCKER_REPO}"
 
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+
   tag:
     name: Tag
 
@@ -83,8 +87,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Create new git tag
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
-          git tag -f ${VERSION}
-          git push -f origin ${VERSION}
+          git tag -f ${{ needs.build.outputs.version }}
+          git push -f origin ${{ needs.build.outputs.version }}
