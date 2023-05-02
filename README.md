@@ -12,6 +12,7 @@ Additional Debian packages:
 - [ca-certificates](https://packages.debian.org/bullseye/ca-certificates)
 - [curl](https://packages.debian.org/bullseye/curl)
 - [git](https://packages.debian.org/bullseye/git)
+- [make](https://packages.debian.org/bullseye/make)
 - [procps](https://packages.debian.org/bullseye/procps)
 - [unzip](https://packages.debian.org/bullseye/unzip)
 - [xz-utils](https://packages.debian.org/bullseye/xz-utils)
