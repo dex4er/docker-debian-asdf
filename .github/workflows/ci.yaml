@@ -34,6 +34,9 @@ jobs:
         platform:
           - linux/amd64
           - linux/arm64
+        codename:
+          - bookworm
+          - bullseye
 
     steps:
       - name: Checkout
@@ -56,11 +59,10 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Calculate new version number
-        id: version
-        run: echo VERSION=$(make info | awk '$1=="Version:"{print $2}') | tee -a $GITHUB_ENV | tee -a $GITHUB_OUTPUT
+        run: echo VERSION=$(make info DEBIAN_CODENAME="${{ matrix.codename }}" | awk '$1=="Version:"{print $2}') | tee -a $GITHUB_ENV | tee -a $GITHUB_OUTPUT
 
       - name: Build
-        run: make build VERSION="${VERSION}" PLATFORM="${{ matrix.platform }}"
+        run: make build VERSION="${VERSION}" PLATFORM="${{ matrix.platform }}" DEBIAN_CODENAME="${{ matrix.codename }}"
 
       - name: Inspect container image
         run: docker inspect "localhost:5000/$IMAGE_NAME" | jq -C .
@@ -70,10 +72,7 @@ jobs:
 
       - name: Push to Docker
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: make push DOCKER_REPO="${DOCKER_REPO}" PLATFORM="${{ matrix.platform }}"
-
-    outputs:
-      version: ${{ steps.version.outputs.VERSION }}
+        run: make push DOCKER_REPO="${DOCKER_REPO}" PLATFORM="${{ matrix.platform }}" DEBIAN_CODENAME="${{ matrix.codename }}"
 
   tag:
     name: Tag
@@ -85,6 +84,13 @@ jobs:
       contents: write
 
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        codename:
+          - bookworm
+          - bullseye
 
     steps:
       - name: Checkout
@@ -100,23 +106,25 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Reuse new version number
-        run: echo VERSION=${{ needs.build.outputs.version }} | tee -a $GITHUB_ENV
+      - name: Calculate new version number
+        run: echo VERSION=$(make info DEBIAN_CODENAME="${{ matrix.codename }}" | awk '$1=="Version:"{print $2}') | tee -a $GITHUB_ENV | tee -a $GITHUB_OUTPUT
 
       - name: Calculate new short version number
-        run: echo SHORT_VERSION=${VERSION%-bullseye-*} | tee -a $GITHUB_ENV
+        run: echo SHORT_VERSION=${VERSION%-${{ matrix.codename }}-*} | tee -a $GITHUB_ENV
 
       - name: Tag multiarch images
         run: |
           docker manifest create ${DOCKER_REPO}:${VERSION} ${DOCKER_REPO}:${VERSION}-linux-arm64 ${DOCKER_REPO}:${VERSION}-linux-amd64
           docker manifest push ${DOCKER_REPO}:${VERSION}
+          docker manifest create ${DOCKER_REPO}:${SHORT_VERSION}-${{ matrix.codename }} ${DOCKER_REPO}:${VERSION}-linux-arm64 ${DOCKER_REPO}:${VERSION}-linux-amd64
+          docker manifest push ${DOCKER_REPO}:${SHORT_VERSION}-${{ matrix.codename }}
+          docker manifest create ${DOCKER_REPO}:${{ matrix.codename }} ${DOCKER_REPO}:${VERSION}-linux-arm64 ${DOCKER_REPO}:${VERSION}-linux-amd64
+          docker manifest push ${DOCKER_REPO}:${{ matrix.codename }}
+
+      - name: Tag multiarch images for bookworm
+        if: matrix.codename == 'bookworm'
+        run: |
           docker manifest create ${DOCKER_REPO}:${SHORT_VERSION} ${DOCKER_REPO}:${VERSION}-linux-arm64 ${DOCKER_REPO}:${VERSION}-linux-amd64
           docker manifest push ${DOCKER_REPO}:${SHORT_VERSION}
           docker manifest create ${DOCKER_REPO}:latest ${DOCKER_REPO}:${VERSION}-linux-arm64 ${DOCKER_REPO}:${VERSION}-linux-amd64
           docker manifest push ${DOCKER_REPO}:latest
-
-      - name: Create new git tag
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: |
-          git tag -f ${{ needs.build.outputs.version }}
-          git push -f origin ${{ needs.build.outputs.version }}

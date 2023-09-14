@@ -5,7 +5,8 @@
 [![Trunk Check](https://github.com/dex4er/docker-debian-asdf/actions/workflows/trunk.yaml/badge.svg)](https://github.com/dex4er/docker-debian-asdf/actions/workflows/trunk.yaml)
 [![Docker Image Version](https://img.shields.io/docker/v/dex4er/debian-asdf/latest?label=docker&logo=docker)](https://hub.docker.com/r/dex4er/debian-asdf)
 
-Container image with [asdf](https://asdf-vm.com/) installer based on Debian 11 "bullseye".
+Container image with [asdf](https://asdf-vm.com/) installer based on Debian
+11 "bullseye" and Debian 12 "bookworm".
 
 Additional Debian packages:
 
@@ -19,7 +20,8 @@ Additional Debian packages:
 
 ## Tags
 
-- `asdf-X.Y.Z-bullseye-YYYYmmdd`, `asdf-X.Y.Z`, `latest`
+- `asdf-X.Y.Z-bookworm-YYYYmmdd`, `asdf-X.Y.Z-bookworm`, `bookworm`, `asdf-X.Y.Z`, `latest`.
+- `asdf-X.Y.Z-bullseye-YYYYmmdd`, `asdf-X.Y.Z-bullseye`, `bullseye`.
 
 ## Usage
 

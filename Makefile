@@ -8,7 +8,8 @@ endif
 SED = sed
 
 ASDF_RELEASE ?= v$(shell curl -s https://api.github.com/repos/asdf-vm/asdf/releases | $(GREP) -oE 'tag_name": ".{1,15}",' | $(SED) 's/tag_name\": \"v//;s/\",//' | $(GREP) -vE '^(0\.[12]\.|0\.3\.0$$)' | $(SED) 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$$/.z/; G; s/\n/ /' | LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $$2}' | tail -n1)
-DEBIAN_TAG ?= $(shell docker run --rm gcr.io/go-containerregistry/crane ls debian | $(GREP) -P '^bullseye-[0-9]+$$' | sort -r | head -n1)
+DEBIAN_CODENAME ?= bookworm
+DEBIAN_TAG ?= $(shell docker run --rm gcr.io/go-containerregistry/crane ls debian | $(GREP) -P '^$(DEBIAN_CODENAME)-[0-9]+$$' | sort -r | head -n1)
 VERSION ?= asdf-$(ASDF_RELEASE:v%=%)-$(DEBIAN_TAG)
 
 REVISION ?= $(shell git rev-parse HEAD)
