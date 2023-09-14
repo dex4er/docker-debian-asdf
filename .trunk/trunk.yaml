@@ -1,16 +1,21 @@
 version: 0.1
 cli:
-  version: 1.8.1
+  version: 1.15.0
 lint:
+  disabled:
+    - checkov
+    - terrascan
+    - trivy
+    - trufflehog
   enabled:
-    - actionlint@1.6.24
+    - actionlint@1.6.25
     - dotenv-linter@3.3.0
     - git-diff-check@SYSTEM
-    - gitleaks@8.16.3
+    - gitleaks@8.18.0
     - hadolint@2.12.0
-    - markdownlint@0.34.0
-    - prettier@2.8.8
-    - yamllint@1.31.0
+    - markdownlint@0.36.0
+    - prettier@3.0.3
+    - yamllint@1.32.0
 actions:
   enabled:
     - trunk-announce
@@ -20,10 +25,10 @@ actions:
 plugins:
   sources:
     - id: trunk
-      ref: v0.0.16
+      ref: v1.2.3
       uri: https://github.com/trunk-io/plugins
 runtimes:
   enabled:
-    - go@1.19.5
+    - go@1.21.0
     - node@18.12.1
     - python@3.10.8
