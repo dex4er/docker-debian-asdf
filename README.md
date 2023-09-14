@@ -1,9 +1,10 @@
 # debian-asdf
 
-[![GitHub](https://img.shields.io/github/v/tag/dex4er/docker-debian-asdf?label=GitHub)](https://github.com/dex4er/docker-debian-asdf)
+[![GitHub](https://img.shields.io/github/last-commit/dex4er/docker-debian-asdf/main?logo=github&label=GitHub)](https://github.com/dex4er/docker-debian-asdf)
 [![CI](https://github.com/dex4er/docker-debian-asdf/actions/workflows/ci.yaml/badge.svg)](https://github.com/dex4er/docker-debian-asdf/actions/workflows/ci.yaml)
 [![Trunk Check](https://github.com/dex4er/docker-debian-asdf/actions/workflows/trunk.yaml/badge.svg)](https://github.com/dex4er/docker-debian-asdf/actions/workflows/trunk.yaml)
 [![Docker Image Version](https://img.shields.io/docker/v/dex4er/debian-asdf/latest?label=docker&logo=docker)](https://hub.docker.com/r/dex4er/debian-asdf)
+[![Amazon ECR Image Version](https://img.shields.io/docker/v/dex4er/debian-asdf?label=Amazon%20ECR&logo=Amazon+AWS)](https://gallery.ecr.aws/dex4er/debian-asdf)
 
 Container image with [asdf](https://asdf-vm.com/) installer based on Debian
 11 "bullseye" and Debian 12 "bookworm".
