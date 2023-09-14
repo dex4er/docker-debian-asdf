@@ -58,6 +58,19 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
+      - name: Configure AWS credentials
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+
+      - name: Login to Amazon ECR Public
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
+
       - name: Calculate new version number
         run: echo VERSION=$(make info DEBIAN_CODENAME="${{ matrix.codename }}" | awk '$1=="Version:"{print $2}') | tee -a $GITHUB_ENV | tee -a $GITHUB_OUTPUT
 
@@ -70,9 +83,13 @@ jobs:
       - name: Test built image
         run: make test PLATFORM="${{ matrix.platform }}"
 
-      - name: Push to Docker
+      - name: Push to DockerHub
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: make push DOCKER_REPO="${DOCKER_REPO}" PLATFORM="${{ matrix.platform }}" DEBIAN_CODENAME="${{ matrix.codename }}"
+
+      - name: Push to Amazon ECR Public
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: make push DOCKER_REPO="${PUBLIC_ECR_REPO}" PLATFORM="${{ matrix.platform }}" DEBIAN_CODENAME="${{ matrix.codename }}"
 
   tag:
     name: Tag
@@ -106,13 +123,26 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
+      - name: Configure AWS credentials
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+
+      - name: Login to Amazon ECR Public
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
+
       - name: Calculate new version number
         run: echo VERSION=$(make info DEBIAN_CODENAME="${{ matrix.codename }}" | awk '$1=="Version:"{print $2}') | tee -a $GITHUB_ENV | tee -a $GITHUB_OUTPUT
 
       - name: Calculate new short version number
         run: echo SHORT_VERSION=${VERSION%-${{ matrix.codename }}-*} | tee -a $GITHUB_ENV
 
-      - name: Tag multiarch images
+      - name: Tag multiarch images on DockerHub
         run: |
           docker manifest create ${DOCKER_REPO}:${VERSION} ${DOCKER_REPO}:${VERSION}-linux-arm64 ${DOCKER_REPO}:${VERSION}-linux-amd64
           docker manifest push ${DOCKER_REPO}:${VERSION}
@@ -121,10 +151,27 @@ jobs:
           docker manifest create ${DOCKER_REPO}:${{ matrix.codename }} ${DOCKER_REPO}:${VERSION}-linux-arm64 ${DOCKER_REPO}:${VERSION}-linux-amd64
           docker manifest push ${DOCKER_REPO}:${{ matrix.codename }}
 
-      - name: Tag multiarch images for bookworm
+      - name: Tag multiarch images on Amazon ECR Public
+        run: |
+          docker manifest create ${PUBLIC_ECR_REPO}:${VERSION} ${PUBLIC_ECR_REPO}:${VERSION}-linux-arm64 ${PUBLIC_ECR_REPO}:${VERSION}-linux-amd64
+          docker manifest push ${PUBLIC_ECR_REPO}:${VERSION}
+          docker manifest create ${PUBLIC_ECR_REPO}:${SHORT_VERSION}-${{ matrix.codename }} ${PUBLIC_ECR_REPO}:${VERSION}-linux-arm64 ${PUBLIC_ECR_REPO}:${VERSION}-linux-amd64
+          docker manifest push ${PUBLIC_ECR_REPO}:${SHORT_VERSION}-${{ matrix.codename }}
+          docker manifest create ${PUBLIC_ECR_REPO}:${{ matrix.codename }} ${PUBLIC_ECR_REPO}:${VERSION}-linux-arm64 ${PUBLIC_ECR_REPO}:${VERSION}-linux-amd64
+          docker manifest push ${PUBLIC_ECR_REPO}:${{ matrix.codename }}
+
+      - name: Tag multiarch images for bookworm on DockerHub
         if: matrix.codename == 'bookworm'
         run: |
           docker manifest create ${DOCKER_REPO}:${SHORT_VERSION} ${DOCKER_REPO}:${VERSION}-linux-arm64 ${DOCKER_REPO}:${VERSION}-linux-amd64
           docker manifest push ${DOCKER_REPO}:${SHORT_VERSION}
           docker manifest create ${DOCKER_REPO}:latest ${DOCKER_REPO}:${VERSION}-linux-arm64 ${DOCKER_REPO}:${VERSION}-linux-amd64
           docker manifest push ${DOCKER_REPO}:latest
+
+      - name: Tag multiarch images for bookworm on Amazon ECR Public
+        if: matrix.codename == 'bookworm'
+        run: |
+          docker manifest create ${PUBLIC_ECR_REPO}:${SHORT_VERSION} ${PUBLIC_ECR_REPO}:${VERSION}-linux-arm64 ${PUBLIC_ECR_REPO}:${VERSION}-linux-amd64
+          docker manifest push ${PUBLIC_ECR_REPO}:${SHORT_VERSION}
+          docker manifest create ${PUBLIC_ECR_REPO}:latest ${PUBLIC_ECR_REPO}:${VERSION}-linux-arm64 ${PUBLIC_ECR_REPO}:${VERSION}-linux-amd64
+          docker manifest push ${PUBLIC_ECR_REPO}:latest
