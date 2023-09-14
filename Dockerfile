@@ -1,6 +1,6 @@
 ## $ docker buildx build --platform=linux/amd64 --tag dex4er/debian-asdf .
 
-ARG ASDF_RELEASE=v0.10.2
+ARG ASDF_RELEASE=v0.12.0
 ARG DEBIAN_TAG=bullseye
 ARG VERSION=latest
 ARG REVISION
