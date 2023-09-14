@@ -9,9 +9,6 @@ ARG BUILDDATE
 FROM debian:${DEBIAN_TAG} as build
 
 ARG ASDF_RELEASE
-ARG BUILDDATE
-ARG VERSION
-ARG REVISION
 
 RUN apt-get -q -y update
 RUN apt-get -q -y --no-install-recommends install \
@@ -26,6 +23,10 @@ RUN find /var/cache/apt /var/lib/apt/lists /var/log -type f -delete
 
 
 FROM scratch
+
+ARG BUILDDATE
+ARG VERSION
+ARG REVISION
 
 COPY --from=build / /
 
